@@ -6,8 +6,9 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ShoppingBag } from "lucide-react"
 
-export function HeaderLogo({ adminName }: { adminName?: string }) {
+export function HeaderLogo({ adminName, shopNameOverride }: { adminName?: string; shopNameOverride?: string | null }) {
     const { t } = useI18n()
+    const override = shopNameOverride?.trim()
     const shopName = adminName
         ? t('common.shopNamePattern', { name: adminName, appName: t('common.appName') })
         : t('common.appName')
@@ -17,7 +18,7 @@ export function HeaderLogo({ adminName }: { adminName?: string }) {
             <div className="h-8 w-8 rounded-lg bg-foreground flex items-center justify-center transition-all duration-300">
                 <ShoppingBag className="h-4 w-4 text-background" />
             </div>
-            <span className="text-sm font-semibold tracking-tight">{shopName}</span>
+            <span className="text-sm font-semibold tracking-tight">{override || shopName}</span>
         </Link>
     )
 }

@@ -14,7 +14,7 @@ import { SignInButton } from "@/components/signin-button"
 import { SignOutButton } from "@/components/signout-button"
 import { HeaderLogo, HeaderNav, HeaderUserMenuItems, LanguageSwitcher } from "@/components/header-client-parts"
 import { ModeToggle } from "@/components/mode-toggle"
-import { recordLoginUser } from "@/lib/db/queries"
+import { getSetting, recordLoginUser } from "@/lib/db/queries"
 
 export async function SiteHeader() {
     const session = await auth()
@@ -28,12 +28,18 @@ export async function SiteHeader() {
     const adminUsers = rawAdminUsers.map(u => u.toLowerCase())
     const isAdmin = user?.username && adminUsers.includes(user.username.toLowerCase()) || false
     const firstAdminName = rawAdminUsers[0]?.trim() // Get first admin name for branding
+    let shopNameOverride: string | null = null
+    try {
+        shopNameOverride = await getSetting('shop_name')
+    } catch {
+        shopNameOverride = null
+    }
 
     return (
         <header className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl supports-[backdrop-filter]:bg-background/60">
             <div className="container flex h-16 items-center space-x-4 sm:justify-between sm:space-x-0">
                 <div className="flex gap-6 md:gap-10">
-                    <HeaderLogo adminName={firstAdminName} />
+                    <HeaderLogo adminName={firstAdminName} shopNameOverride={shopNameOverride} />
                     <HeaderNav isAdmin={isAdmin} />
                 </div>
                 <div className="flex flex-1 items-center justify-end space-x-4">

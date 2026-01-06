@@ -91,6 +91,14 @@
         "browseProducts": "Browse Products"
     },
     "admin": {
+        "settings": {
+            "title": "Store Settings",
+            "shopName": "Store Name",
+            "shopNamePlaceholder": "Enter store name",
+            "shopNameHint": "Shown in the header and page title.",
+            "save": "Save",
+            "shopNameEmpty": "Store name cannot be empty"
+        },
         "stats": {
             "today": "Today",
             "week": "Last 7 Days",

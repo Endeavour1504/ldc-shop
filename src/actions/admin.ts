@@ -5,6 +5,7 @@ import { db } from "@/lib/db"
 import { products, cards } from "@/lib/db/schema"
 import { eq, sql } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
+import { setSetting } from "@/lib/db/queries"
 
 // Check Admin Helper
 // Check Admin Helper
@@ -102,4 +103,39 @@ export async function deleteCard(cardId: number) {
 
     revalidatePath('/admin')
     revalidatePath('/')
+}
+
+export async function saveShopName(rawName: string) {
+    await checkAdmin()
+
+    const name = rawName.trim()
+    if (!name) {
+        throw new Error("Shop name cannot be empty")
+    }
+    if (name.length > 64) {
+        throw new Error("Shop name is too long")
+    }
+
+    try {
+        await setSetting('shop_name', name)
+    } catch (error: any) {
+        // If settings table doesn't exist, create it and retry
+        if (error.message?.includes('does not exist') ||
+            error.code === '42P01' ||
+            JSON.stringify(error).includes('42P01')) {
+            await db.execute(sql`
+                CREATE TABLE IF NOT EXISTS settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT,
+                    updated_at TIMESTAMP DEFAULT NOW()
+                )
+            `)
+            await setSetting('shop_name', name)
+        } else {
+            throw error
+        }
+    }
+
+    revalidatePath('/')
+    revalidatePath('/admin')
 }

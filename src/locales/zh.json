@@ -91,6 +91,14 @@
         "browseProducts": "浏览商品"
     },
     "admin": {
+        "settings": {
+            "title": "商店设置",
+            "shopName": "商店名称",
+            "shopNamePlaceholder": "请输入商店名称",
+            "shopNameHint": "会显示在顶部导航与页面标题。",
+            "save": "保存",
+            "shopNameEmpty": "商店名称不能为空"
+        },
         "stats": {
             "today": "今日",
             "week": "近7天",

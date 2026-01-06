@@ -1,13 +1,16 @@
 'use client'
 
+import { useState } from "react"
 import { useI18n } from "@/lib/i18n/context"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Plus, Eye, EyeOff, ArrowUp, ArrowDown, TrendingUp, ShoppingCart, CreditCard, Package } from "lucide-react"
-import { deleteProduct, toggleProductStatus, reorderProduct } from "@/actions/admin"
+import { deleteProduct, toggleProductStatus, reorderProduct, saveShopName } from "@/actions/admin"
 import { toast } from "sonner"
 
 interface Product {
@@ -30,10 +33,13 @@ interface Stats {
 interface AdminProductsContentProps {
     products: Product[]
     stats: Stats
+    shopName: string | null
 }
 
-export function AdminProductsContent({ products, stats }: AdminProductsContentProps) {
+export function AdminProductsContent({ products, stats, shopName }: AdminProductsContentProps) {
     const { t } = useI18n()
+    const [shopNameValue, setShopNameValue] = useState(shopName || '')
+    const [savingShopName, setSavingShopName] = useState(false)
 
     const handleDelete = async (id: string) => {
         if (!confirm(t('admin.products.confirmDelete'))) return
@@ -75,8 +81,49 @@ export function AdminProductsContent({ products, stats }: AdminProductsContentPr
         }
     }
 
+    const handleSaveShopName = async () => {
+        const trimmed = shopNameValue.trim()
+        if (!trimmed) {
+            toast.error(t('admin.settings.shopNameEmpty'))
+            return
+        }
+        setSavingShopName(true)
+        try {
+            await saveShopName(trimmed)
+            toast.success(t('common.success'))
+        } catch (e: any) {
+            toast.error(e.message)
+        } finally {
+            setSavingShopName(false)
+        }
+    }
+
     return (
         <div className="space-y-6">
+            {/* Shop Settings */}
+            <Card>
+                <CardHeader>
+                    <CardTitle>{t('admin.settings.title')}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                    <div className="grid gap-2 md:max-w-xl">
+                        <Label htmlFor="shop-name">{t('admin.settings.shopName')}</Label>
+                        <Input
+                            id="shop-name"
+                            value={shopNameValue}
+                            onChange={(e) => setShopNameValue(e.target.value)}
+                            placeholder={t('admin.settings.shopNamePlaceholder')}
+                        />
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <Button onClick={handleSaveShopName} disabled={savingShopName}>
+                            {savingShopName ? t('common.processing') : t('admin.settings.save')}
+                        </Button>
+                        <p className="text-xs text-muted-foreground">{t('admin.settings.shopNameHint')}</p>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* Dashboard Stats */}
             <div className="grid gap-4 md:grid-cols-4">
                 <Card>
@@ -206,4 +253,3 @@ export function AdminProductsContent({ products, stats }: AdminProductsContentPr
         </div>
     )
 }
-
