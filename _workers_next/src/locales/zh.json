@@ -34,6 +34,7 @@
         "viewOrders": "查看订单",
         "inStock": "有货",
         "outOfStock": "缺货",
+        "common.unlimited": "无限",
         "stock": "库存",
         "sold": "已售",
         "buy": "购买",
