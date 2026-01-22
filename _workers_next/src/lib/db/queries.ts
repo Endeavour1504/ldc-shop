@@ -525,35 +525,33 @@ export async function getWishlistItems(userId: string | null, limit = 10) {
     await ensureWishlistTables();
 
     const uid = userId || '';
-    const result: any = await db.run(sql`
-        SELECT
-            w.id,
-            w.title,
-            w.description,
-            w.username,
-            w.created_at,
-            COALESCE(v.cnt, 0) AS votes,
-            CASE WHEN mv.user_id IS NULL THEN 0 ELSE 1 END AS voted
-        FROM wishlist_items w
-        LEFT JOIN (
-            SELECT item_id, COUNT(*) AS cnt
-            FROM wishlist_votes
-            GROUP BY item_id
-        ) v ON v.item_id = w.id
-        LEFT JOIN wishlist_votes mv ON mv.item_id = w.id AND mv.user_id = ${uid}
-        ORDER BY votes DESC, w.created_at DESC
-        LIMIT ${limit}
-    `);
+    const votesExpr = sql<number>`(SELECT COUNT(*) FROM wishlist_votes v WHERE v.item_id = ${wishlistItems.id})`;
+    const votedExpr = userId
+        ? sql<number>`EXISTS(SELECT 1 FROM wishlist_votes v WHERE v.item_id = ${wishlistItems.id} AND v.user_id = ${uid})`
+        : sql<number>`0`;
 
-    const rows = result?.results || result?.rows || [];
+    const rows = await db
+        .select({
+            id: wishlistItems.id,
+            title: wishlistItems.title,
+            description: wishlistItems.description,
+            username: wishlistItems.username,
+            createdAt: wishlistItems.createdAt,
+            votes: votesExpr,
+            voted: votedExpr
+        })
+        .from(wishlistItems)
+        .orderBy(desc(votesExpr), desc(wishlistItems.createdAt))
+        .limit(limit);
+
     return rows.map((row: any) => ({
         id: Number(row.id),
         title: row.title,
         description: row.description,
         username: row.username,
-        createdAt: Number(row.created_at ?? row.createdAt ?? 0),
-        votes: Number(row.votes ?? row.cnt ?? 0),
-        voted: !!row.voted
+        createdAt: Number(row.createdAt ?? 0),
+        votes: Number(row.votes ?? 0),
+        voted: Boolean(row.voted)
     }));
 }
 
